@@ -1,0 +1,258 @@
+# Intro to Data Science - HW 5
+##### Copyright Jeffrey Stanton, Jeffrey Saltz, and Jasmina Tacheva
+
+```{r}
+# Enter your name here: Kristan Rodriguez
+```
+
+
+### Attribution statement: (choose only one and delete the rest)
+
+
+```{r}
+# 1. I did this homework by myself, with help from the book and the professor.
+# 2. I did this homework with help from the book and the professor and these Internet sources:
+# 3. I did this homework with help from <Name of another student> but did not cut and paste any code.
+```
+
+**This module:** **Data visualization** is important because many people can make sense of data more easily when it is presented in graphic form. As a data scientist, you will have to present complex data to decision makers in a form that makes the data interpretable for them. From your experience with Excel and other tools, you know that there are a variety of **common data visualizations** (e.g., pie charts). How many of them can you name? <br>
+
+The most powerful tool for data visualization in R is called **ggplot**. Written by computer/data scientist **Hadley Wickham**, this **“graphics grammar”** tool builds visualizations in layers. This method provides immense flexibility, but takes a bit of practice to master.
+
+
+## Step 1: Make a copy of the data
+
+A.	Read the **who** dataset from this URL: https://intro-datascience.s3.us-east-2.amazonaws.com/who.csv <br>
+into a new dataframe called **tb**. 
+
+Your new dataframe, tb, contains a so-called **multivariate time series**: a sequence of measurements on 23 Tuberculosis-related (TB) variables captured repeatedly over time (1980-2013). Familiarize yourself with the nature of the 23 variables by consulting the dataset’s codebook which can be found here: https://intro-datascience.s3.us-east-2.amazonaws.com/TB_data_dictionary_2021-02-06.csv.
+
+
+```{r}
+who<- read.csv("https://intro-datascience.s3.us-east-2.amazonaws.com/who.csv")
+who
+tb<-who
+```
+
+B.	How often were these measurements taken (in other words, at what frequency were the variables measured)? Put your answer in a comment. 
+
+
+```{r}
+hist(tb$year)
+# Itappears that in the early 1980' the frequency of TB tests were well over 500, but by the mid 80's testing slowed down drastically. There seemed to be an uptick in testing in the early 90's and has leveled out since then.
+```
+
+## Step 2: Clean-up the NAs and create a subset
+
+A.	Let's clean up the iso2 attribute in **tb** 
+
+Hint: use *is.na()* -- well use *! is.na()* 
+
+
+```{r}
+library("tidyverse")
+library(ggplot2)
+tb1<- filter(tb, !is.na(tb$iso2))
+```
+
+B. Create a subset of **tb** containing **only the records for Canada ("CA" in the iso2 variable)**. Save it in a new dataframe called **tbCan**. Make sure this new df has **29 observations and 23 variables**.
+
+
+```{r}
+tbCan<- tb %>% filter(iso2=="CA")
+tbCan
+```
+
+C. A simple method for dealing with small amounts of **missing data** in a numeric variable is to **substitute the mean of the variable in place of each missing datum**. <br>
+This expression locates (and reports to the console) all the missing data elements in the variable measuring the **number of positive pulmonary smear tests for male children 0-4 years old** (there are 26 data points missing)
+
+
+```{r}
+tbCan$new_sp_m04[is.na(tbCan$new_sp_m04)]
+```
+
+
+    Error in eval(expr, envir, enclos): object 'tbCan' not found
+    Traceback:
+
+
+
+D.	Write a comment describing how that statement works.
+
+
+```{r}
+#The previous code is call all of the values in the column new_sp_m04 that have a value of NA. When the code is run it returns all of the 26 NA values from that column.
+```
+
+E.	Write 4 more statements to check if there is missing data for the number of positive pulmonary smear tests for: **male and female** children 0-14 years old (**new_sp_m014** and **new_sp_f014**), and **male and female citizens 65 years of age and older**, respectively. What does empty output suggest about the number of missing observations?
+
+
+```{r}
+tbCan$new_sp_m014[is.na(tbCan$new_sp_m014)]
+tbCan$new_sp_f014[is.na(tbCan$new_sp_f014)]
+tbCan$new_sp_m65[is.na(tbCan$new_sp_m65)]
+tbCan$new_sp_f65[is.na(tbCan$new_sp_f65)]
+
+# The empty of numeric(0) return from the codes is an indication that there are no NA values for the male and female children 0-14 years old, and there are no NA values for the male and female citizens 65 years of age and older.
+```
+
+There is an R package called **imputeTS** specifically designed to repair missing values in time series data. We will use this instead of mean substitution.  <br>
+The **na_interpolation()** function in this package takes advantage of a unique characteristic of time series data: **neighboring points in time can be used to “guess” about a missing value in between**.
+
+F.	Install the **imputeTS** package (if needed) and use **na_interpolation( )** on the variable from part C. Don’t forget that you need to save the results back to the **tbCan** dataframe. Also update any attribute discussed in part E (if needed).
+
+
+```{r}
+#install.packages("imputeTS")
+#library("imputeTS")
+#tbCan$new_sp_m04<- na_interpolation(tbCan$new_sp_m04)
+
+```
+
+G.	Rerun the code from C and E above to check that all missing data have been fixed. 
+
+
+```{r}
+tbCan$new_sp_m04[is.na(tbCan$new_sp_m04)]
+```
+
+## Step 3: Use ggplot to explore the distribution of each variable
+**Don’t forget to install and library the ggplot2 package.** Then: <br>
+H.	Create a histogram for **new_sp_m014**. Be sure to add a title and briefly describe what the histogram means in a comment.
+
+
+```{r}
+tbm014Plot<-ggplot(tbCan)
+#The aesthetics
+tbm014Plot<- tbm014Plot + aes(x=new_sp_m014)
+#The geometry
+tbm014Plot<-tbm014Plot + geom_histogram(bins=8)
+##Add title
+tbm014Plot<- tbm014Plot + ggtitle("Positive Smear Test Male 14yrs")
+#Invoke the plot to draw
+tbm014Plot
+#The histogram displays the number of positive smear cases in males 14 years of age over the years.
+```
+
+I.	Create histograms (using ggplot) of each of the other three variables from E with ggplot( ). <br>
+Which parameter do you need to adjust to make the other histograms look right?
+
+
+```{r}
+tbf014Plot<-ggplot(tbCan)
+#The aesthetics
+tbf014Plot<- tbf014Plot + aes(x=new_sp_f014)
+#The geometry
+tbf014Plot<-tbf014Plot + geom_histogram(bins=8)
+##Add title
+tbf014Plot<- tbf014Plot + ggtitle("Positive Smear Test Female 14yrs")
+#Invoke the plot to draw
+tbf014Plot
+#Males ages 65 and older
+tbm65Plot<-ggplot(tbCan)
+#The aesthetics
+tbm65Plot<- tbm65Plot + aes(x=new_sp_m65)
+#The geometry
+tbm65Plot<-tbm65Plot + geom_histogram(bins=8)
+##Add title
+tbm65Plot<- tbm65Plot + ggtitle("Positive Smear Test Male 65yrs")
+#Invoke the plot to draw
+tbm65Plot
+
+#females ages 65 and older
+tbf65Plot<-ggplot(tbCan)
+#The aesthetics
+tbf65Plot<- tbf65Plot + aes(x=new_sp_f65)
+#The geometry
+tbf65Plot<-tbf65Plot + geom_histogram(bins=8)
+##Add title
+tbf65Plot<- tbf65Plot + ggtitle("Positive Smear Test Female 65yrs")
+#Invoke the plot to draw
+tbf65Plot
+
+#The parameter used to make the histograms look somewhat correct is the bin width. By default R uses 30, But I instead used 8 to normalize the size of the histogram.
+```
+
+## Step 4: Explore how the data changes over time
+J.	These data were collected in a period of several decades (1980-2013). You can thus observe changes over time with the help of a line chart. Create a **line chart**, with **year** on the X-axis and **new_sp_m014** on the Y-axis.
+
+
+```{r}
+tbm014Line<-ggplot(tbCan)
+#The aesthetics
+tbm014Line<- tbm014Line + aes(x=year, y=new_sp_m014)
+#The geometry
+tbm014Line<-tbm014Line + geom_line()
+##Add theme
+theme((axis.test.x= element_text(angle=90, hjust=1)))
+#Invoke the plot to draw
+tbm014Line
+```
+
+K.	Next, create similar graphs for each of the other three variables. Change the **color** of the line plots (any color you want).
+
+
+```{r}
+tbf014Line<-ggplot(tbCan)
+#The aesthetics
+tbf014Line<- tbf014Line + aes(x=year, y=new_sp_f014, color="blue") 
+  
+#The geometry
+tbf014Line<-tbf014Line + geom_line() 
+##Add theme
+theme((axis.test.x= element_text(angle=90, hjust=1)))
+#Invoke the plot to draw
+tbf014Line
+#Males ages 65 and older
+tbm65Line<-ggplot(tbCan)
+#The aesthetics
+tbm65Line<- tbm65Line + aes(x=year, y=new_sp_m65, color="red") 
+  
+#The geometry
+tbm65Line<-tbm65Line + geom_line()
+##Add theme
+theme((axis.test.x= element_text(angle=90, hjust=1)))
+#Invoke the plot to draw
+tbm65Line
+
+#females ages 65 and older
+tbf65Line<-ggplot(tbCan)
+#The aesthetics
+tbf65Line<- tbf65Line + aes(x=year, y=new_sp_f65, color="purple") 
+ 
+#The geometry
+tbf65Line<-tbf65Line + geom_line()
+##Add theme
+theme((axis.test.x= element_text(angle=90, hjust=1)))
+#Invoke the plot to draw
+tbf65Line
+```
+
+L.	Using vector math, create a new variable by combining the numbers from **new_sp_m014** and **new_sp_f014**. Save the resulting vector as a new variable in the **tbCan** df called **new_sp_combined014**. This new variable represents the number of positive pulmonary smear tests for male AND female children between the ages of 0 and 14 years of age. Do the same for SP **tests among citizens 65 years of age and older** and save the resulting vector in the tbCan variable called **new_sp_combined65**.
+
+
+```{r}
+tbCan$new_sp_combined014<- c(tbCan$new_sp_m014 + tbCan$new_sp_f014)
+tbCan$new_sp_combined65<-c(tbCan$new_sp_m65 + tbCan$new_sp_f65)
+```
+
+M.	Finally, create a **scatter plot**, showing **new_sp_combined014** on the x axis, **new_sp_combined65** on the y axis, and having the **color and size** of the point represent **year**.
+
+
+```{r}
+#The Data
+tbCombo<- ggplot(tbCan)
+#The aesthetics
+tbCombo<- tbCombo + aes(x=new_sp_combined014, y=new_sp_combined65, color=year, size=year)
+#Then geometry
+tbCombo<-tbCombo+geom_point()
+#invoke the plot to draw
+tbCombo
+```
+
+N.	Interpret this visualization – what insight does it provide?
+
+
+```{r}
+# The Scatterplot shows the year and the size in the different color dradients. The size of the circle in the scatterplot determines the size of the testing population during that timeframe. It appears that the combined male and female age 14 population size is larger in the 2000's. Where as the population size for the combined male and female age 65 years and older has a smaller population size in the 2000's. This is an indication that there are more positive cases in the younger population thatn the 65 and older population in the 2000's. 
+```

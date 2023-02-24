@@ -1,0 +1,147 @@
+# Introduction to Data Science HW 4
+##### Copyright Jeffrey Stanton, Jeffrey Saltz, and Jasmina Tacheva
+
+
+```{r}
+# Enter your name here: Kristan Rodriguez
+```
+
+### Attribution statement: (choose only one and delete the rest)
+
+
+```{r}
+# 1. I did this homework by myself, with help from the book and the professor.
+# 2. I did this homework with help from the book and the professor and these Internet sources:
+# 3. I did this homework with help from <Name of another student> but did not cut and paste any code.
+```
+
+Reminders of things to practice from previous weeks: <br>
+Descriptive statistics: 	mean( ) max( ) min( )<br>
+Coerce to numeric:		as.numeric( )<br>
+
+## Part 1: Use the Starter Code 
+
+Below, I have provided a starter file to help you. <br>
+
+Each of these lines of code **must be commented** (the comment must that explains what is going on, so that I know you understand the code and results).
+
+
+```{r}
+#Load in jsonlite package
+library(jsonlite)
+#load in dataset
+dataset <- url("https://intro-datascience.s3.us-east-2.amazonaws.com/role.json")
+#RStore list from dataset
+readlines <- jsonlite::fromJSON(dataset)
+#Subset the dataset to df
+df <- readlines$objects$person
+```
+
+A.	Explore the **df** dataframe (e.g., using head() or whatever you think is best).
+
+
+```{r}
+library(tidyverse)
+glimpse(df)
+str(df)
+
+```
+
+B.	Explain the dataset <br>
+o	What is the dataset about? <br>
+o	How many rows are there and what does a row represent?<br>
+o	How many columns and what does each column represent?<br>
+
+
+
+```{r}
+#This dataset is about the bio of senators and congressmen.
+# There are 100 rows that represent the observations. 
+#There 17 Columns that represent the information about each congressmen.
+
+```
+
+C. What does running this line of code do? Explain in a comment:
+
+
+```{r}
+vals <- substr(df$birthday,1,4)
+#This line of code returns a portion of string, specifically the first four characters in the birthday column. Which is the birth year.
+```
+
+D. Create a new attribute 'age' - how old the person is 
+**Hint:** You may need to convert it to numeric first.
+
+
+```{r}
+df1<- data.frame(df$vals)
+df$age<- 2023 - as.numeric(vals)
+df$age
+```
+
+E. Create a function that reads in the role json dataset, and adds the age attribute to the dataframe, and returns that dataframe
+
+
+```{r}
+dfFunction<- function(){
+ #Load in jsonlite package
+library(jsonlite)
+#load in dataset
+dataset <- url("https://intro-datascience.s3.us-east-2.amazonaws.com/role.json")
+#RStore list from dataset
+readlines <- jsonlite::fromJSON(dataset)
+#Subset the dataset to df
+df <- readlines$objects$person
+#Create and calculate age attribute
+df$age<- 2023 - as.numeric(vals)
+return(df)
+}
+```
+
+F. Use (call, invoke) the function, and store the results in df
+
+
+```{r}
+df<- dfFunction()
+```
+
+## Part 2: Investigate the resulting dataframe 'df'
+
+A.	How many senators are women? 
+
+
+```{r}
+df %>% filter(gender=="female") %>% nrow()
+```
+
+B.	How many senators have a YouTube account?  
+
+
+```{r}
+df %>% filter(!is.na(df$youtubeid),)
+```
+
+C.	 How many women senators have a YouTube account?
+
+
+```{r}
+df %>% filter(gender=="female", !is.na(df$youtubeid),) %>% nrow() 
+```
+
+D.	Create a new dataframe called **youtubeWomen** that only includes women senators who have a YouTube account.   
+
+
+```{r}
+youtubeWomen<-df %>% filter(gender=="female", !is.na(df$youtubeid),)
+youtubeWomen
+```
+
+E.	Make a histogram of the **age** of senators in **youtubeWomen**, and then another for the senetors in **df**. Add a comment describing the shape of the distributions.
+
+
+```{r}
+hist(youtubeWomen$age)
+hist(df$age)
+
+#The shape for both histograms are almost a normal bell shape with the peak being at about 65-75. There are some outliers at 40 and 90. In comparing the women age histogram to the general age histogram There are more men that are both younger and older in the senator.
+```
